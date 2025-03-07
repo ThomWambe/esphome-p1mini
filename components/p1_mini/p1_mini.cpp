@@ -286,7 +286,7 @@ namespace esphome {
 		                    auto iter{ m_sensors.find(obisCode) };
 		                    if (iter != m_sensors.end()) {
 		                        iter->second->publish_val(final_value);
-		                        ESP_LOGD(TAG, "Published value: %f", final_value);
+		                        ESP_LOGD(TAG, "Published value: %f  data : '%s'", final_value,m_start_of_data);
 		                    } else {
 		                        ESP_LOGD(TAG, "No sensor matching: %d.%d.%d (0x%x)", major, minor, micro, obisCode);
 		                    }

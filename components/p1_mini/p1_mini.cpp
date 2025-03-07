@@ -258,53 +258,60 @@ namespace esphome {
                 return;
             }
             case states::PROCESSING_ASCII:
-                ++m_num_processing_loops;
-                do {
-                    while (*m_start_of_data == '\n' || *m_start_of_data == '\r') ++m_start_of_data;
-                    char *end_of_line{ m_start_of_data };
-                    while (*end_of_line != '\n' && *end_of_line != '\r' && *end_of_line != '\0' && *end_of_line != '!') ++end_of_line;
-                    char const end_of_line_char{ *end_of_line };
-                    *end_of_line = '\0';
+		    ++m_num_processing_loops;
+		    do {
+		        while (*m_start_of_data == '\n' || *m_start_of_data == '\r') ++m_start_of_data;
+		        char *end_of_line{ m_start_of_data };
+		        while (*end_of_line != '\n' && *end_of_line != '\r' && *end_of_line != '\0' && *end_of_line != '!') ++end_of_line;
+		        char const end_of_line_char{ *end_of_line };
+		        *end_of_line = '\0';
+		
+		        if (end_of_line != m_start_of_data) {
+		            int group{ -1 }, channel{ -1 }, minor{ -1 }, major{ -1 }, micro{ -1 };
+		            double value{ -1.0 }, second_value{ -1.0 };
+		            char first_value[32], second_value_str[32];
+		
+		            if (sscanf(m_start_of_data, "%d-%d:%d.%d.%d(%31[^)])(%31[^)])", &group, &channel, &major, &minor, &micro, first_value, second_value_str) >= 6) {
+		                // Convertir les chaînes en double
+		                value = atof(first_value);
+		                if (second_value_str[0] != '\0') {
+		                    second_value = atof(second_value_str);
+		                }
+		
+		                // Déterminer la valeur finale à utiliser
+		                double final_value = (second_value != -1.0) ? second_value : value;
+		
+		                if ((group == 0 && channel == 0) || (group == 1 && channel == 0) || (group == 0 && channel == 1)) {
+		                    uint32_t const obisCode{ OBIS(major, minor, micro) };
+		                    auto iter{ m_sensors.find(obisCode) };
+		                    if (iter != m_sensors.end()) {
+		                        iter->second->publish_val(final_value);
+		                        ESP_LOGD(TAG, "Published value: %f  data : '%s'", final_value,m_start_of_data);
+		                    } else {
+		                        ESP_LOGD(TAG, "No sensor matching: %d.%d.%d (0x%x)", major, minor, micro, obisCode);
+		                    }
+		                }
+		            } else {
+		                bool matched_text_sensor{ false };
+		                for (IP1MiniTextSensor *text_sensor : m_text_sensors) {
+		                    if (strncmp(m_start_of_data, text_sensor->Identifier().c_str(), text_sensor->Identifier().size()) == 0) {
+		                        matched_text_sensor = true;
+		                        text_sensor->publish_val(m_start_of_data);
+		                        break;
+		                    }
+		                }
+		                if (!matched_text_sensor) ESP_LOGD(TAG, "No sensor matched line '%s'", m_start_of_data);
+		            }
+		        }
+		        *end_of_line = end_of_line_char;
+		        if (end_of_line_char == '\0' || end_of_line_char == '!') {
+		            ChangeState(states::WAITING);
+		            return;
+		        }
+		        m_start_of_data = end_of_line + 1;
+		    } while (millis() - loop_start_time < 25);
+		    break;
 
-                    if (end_of_line != m_start_of_data) {
-
-                        int group{ -1 }, channel{ -1 }, minor{ -1 }, major{ -1 }, micro{ -1 };
-                        double value{ -1.0 },scdValue{ -1.0 };
-
-                        if (sscanf(m_start_of_data, "%d-%d:%d.%d.%d(%lf)(%lf)", &group, &channel, &major, &minor, &micro, &value,&scdValue) != 6) {
-                           
-                            bool matched_text_sensor{ false };
-                            for (IP1MiniTextSensor *text_sensor : m_text_sensors) {
-                                if (strncmp(m_start_of_data, text_sensor->Identifier().c_str(), text_sensor->Identifier().size()) == 0) {
-                                    matched_text_sensor = true;
-                                    text_sensor->publish_val(m_start_of_data);
-				    
-                                    break;
-                                }
-								
-                            }
-                            if (!matched_text_sensor) ESP_LOGD(TAG, "No sensor matched line '%s'", m_start_of_data);
-                        } else if ((group == 0 && channel == 0) || (group == 1 && channel == 0) || (group == 0 && channel == 1)) {
-							  
-                            uint32_t const obisCode{ OBIS(major, minor, micro) };
-                            auto iter{ m_sensors.find(obisCode) };
-                            
-                            if (iter != m_sensors.end()){
-				    iter->second->publish_val(value);
-				    ESP_LOGD(TAG, "scdValue : '%f'  -- data : '%s'",scdValue, m_start_of_data);
-			    }else {
-                                ESP_LOGD(TAG, "No sensor matching: %d.%d.%d (0x%x) data : '%s'", major, minor, micro, obisCode,m_start_of_data);
-                            }
-                        }
-                    }
-                    *end_of_line = end_of_line_char;
-                    if (end_of_line_char == '\0' || end_of_line_char == '!') {
-                        ChangeState(states::WAITING);
-                        return;
-                    }
-                    m_start_of_data = end_of_line + 1;
-                } while (millis() - loop_start_time < 25);
-                break;
             case states::PROCESSING_BINARY: {
                 ++m_num_processing_loops;
                 if (m_start_of_data == m_message_buffer) {

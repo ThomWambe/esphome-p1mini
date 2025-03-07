@@ -269,9 +269,9 @@ namespace esphome {
                     if (end_of_line != m_start_of_data) {
 
                         int group{ -1 }, channel{ -1 }, minor{ -1 }, major{ -1 }, micro{ -1 };
-                        double value{ -1.0 };
+                        double value{ -1.0 },scdValue{ -1.0 };
 
-                        if (sscanf(m_start_of_data, "%d-%d:%d.%d.%d(%lf", &group, &channel, &major, &minor, &micro, &value) != 6) {
+                        if (sscanf(m_start_of_data, "%d-%d:%d.%d.%d(%lf", &group, &channel, &major, &minor, &micro, &value,&scdValue) != 7) {
                            
                             bool matched_text_sensor{ false };
                             for (IP1MiniTextSensor *text_sensor : m_text_sensors) {

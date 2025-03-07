@@ -285,10 +285,8 @@ namespace esphome {
                         } else if ((group == 0 && channel == 0) || (group == 1 && channel == 0) || (group == 0 && channel == 1)) {
                             uint32_t const obisCode{ OBIS(major, minor, micro) };
                             auto iter{ m_sensors.find(obisCode) };
-                            if (iter != m_sensors.end()) {
-                                iter->second->publish_val(value);
-                                 ESP_LOGD(TAG, "la valeur récupérée est %f ",value);
-                            }else {
+                            if (iter != m_sensors.end()) iter->second->publish_val(value);
+                            else {
                                 ESP_LOGD(TAG, "No sensor matching: %d.%d.%d (0x%x) data : '%s'", major, minor, micro, obisCode,m_start_of_data);
                             }
                         }

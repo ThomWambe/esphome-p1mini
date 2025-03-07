@@ -269,9 +269,10 @@ namespace esphome {
 		        if (end_of_line != m_start_of_data) {
 		            int group{ -1 }, channel{ -1 }, minor{ -1 }, major{ -1 }, micro{ -1 };
 		            double value{ -1.0 }, second_value{ -1.0 };
-		            char first_value[32], second_value_str[32];
+		            char first_value[32] = "", second_value_str[32] = "";
 		
-		            if (sscanf(m_start_of_data, "%d-%d:%d.%d.%d(%31[^)])(%31[^)])", &group, &channel, &major, &minor, &micro, first_value, second_value_str) >= 6) {
+		            if (sscanf(m_start_of_data, "%d-%d:%d.%d.%d(%31[^)])(%31[^)])", &group, &channel, &major, &minor, &micro, first_value, second_value_str) >= 6
+		                || sscanf(m_start_of_data, "%d-%d:%d.%d.%d(%31[^)])", &group, &channel, &major, &minor, &micro, first_value) == 6) {
 		                // Convertir les chaînes en double
 		                value = atof(first_value);
 		                if (second_value_str[0] != '\0') {
@@ -286,7 +287,7 @@ namespace esphome {
 		                    auto iter{ m_sensors.find(obisCode) };
 		                    if (iter != m_sensors.end()) {
 		                        iter->second->publish_val(final_value);
-		                        ESP_LOGD(TAG, "Published value: %f  data : '%s'", final_value,m_start_of_data);
+		                        ESP_LOGD(TAG, "Published value: %f", final_value);
 		                    } else {
 		                        ESP_LOGD(TAG, "No sensor matching: %d.%d.%d (0x%x)", major, minor, micro, obisCode);
 		                    }
@@ -311,6 +312,7 @@ namespace esphome {
 		        m_start_of_data = end_of_line + 1;
 		    } while (millis() - loop_start_time < 25);
 		    break;
+
 
             case states::PROCESSING_BINARY: {
                 ++m_num_processing_loops;

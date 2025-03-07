@@ -272,13 +272,13 @@ namespace esphome {
                         double value{ -1.0 },scdValue{ -1.0 };
 
                         if (sscanf(m_start_of_data, "%d-%d:%d.%d.%d(%lf", &group, &channel, &major, &minor, &micro, &value,&scdValue) != 6) {
-                           
+                           ESP_LOGD(TAG, "scdValue : '%f'  -- data : '%s'",scdValue, m_start_of_data);
                             bool matched_text_sensor{ false };
                             for (IP1MiniTextSensor *text_sensor : m_text_sensors) {
                                 if (strncmp(m_start_of_data, text_sensor->Identifier().c_str(), text_sensor->Identifier().size()) == 0) {
                                     matched_text_sensor = true;
                                     text_sensor->publish_val(m_start_of_data);
-				    ESP_LOGD(TAG, "scdValue : '%f'  -- data : '%s'",scdValue, m_start_of_data);
+				    
                                     break;
                                 }
 								
@@ -288,7 +288,7 @@ namespace esphome {
 							  
                             uint32_t const obisCode{ OBIS(major, minor, micro) };
                             auto iter{ m_sensors.find(obisCode) };
-                            ESP_LOGD(TAG, "value : '%f'/data : '%s'",value,m_start_of_data);
+                            
                             if (iter != m_sensors.end()) iter->second->publish_val(value);
                             else {
                                 ESP_LOGD(TAG, "No sensor matching: %d.%d.%d (0x%x) data : '%s'", major, minor, micro, obisCode,m_start_of_data);

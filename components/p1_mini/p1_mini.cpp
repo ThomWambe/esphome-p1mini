@@ -280,12 +280,14 @@ namespace esphome {
                                     text_sensor->publish_val(m_start_of_data);
                                     break;
                                 }
+								
                             }
                             if (!matched_text_sensor) ESP_LOGD(TAG, "No sensor matched line '%s'", m_start_of_data);
                         } else if ((group == 0 && channel == 0) || (group == 1 && channel == 0) || (group == 0 && channel == 1)) {
+							  
                             uint32_t const obisCode{ OBIS(major, minor, micro) };
                             auto iter{ m_sensors.find(obisCode) };
-                            ESP_LOGD(TAG,"value = %f / data = '%s'",value,m_start_of_data);
+                            
                             if (iter != m_sensors.end()) iter->second->publish_val(value);
                             else {
                                 ESP_LOGD(TAG, "No sensor matching: %d.%d.%d (0x%x) data : '%s'", major, minor, micro, obisCode,m_start_of_data);

@@ -272,7 +272,7 @@ namespace esphome {
                         double value{ -1.0 };
 
                         if (sscanf(m_start_of_data, "%d-%d:%d.%d.%d(%lf", &group, &channel, &major, &minor, &micro, &value) != 6) {
-                            SP_LOGD(TAG, "la valeur récupérée est %f",value);
+                            ESP_LOGD(TAG, "la valeur récupérée est %f",value);
                             bool matched_text_sensor{ false };
                             for (IP1MiniTextSensor *text_sensor : m_text_sensors) {
                                 if (strncmp(m_start_of_data, text_sensor->Identifier().c_str(), text_sensor->Identifier().size()) == 0) {

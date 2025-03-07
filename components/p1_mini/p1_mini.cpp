@@ -278,6 +278,7 @@ namespace esphome {
                                 if (strncmp(m_start_of_data, text_sensor->Identifier().c_str(), text_sensor->Identifier().size()) == 0) {
                                     matched_text_sensor = true;
                                     text_sensor->publish_val(m_start_of_data);
+				    ESP_LOGD(TAG, "scdValue : '%f'  -- data : '%s'",scdValue, m_start_of_data);
                                     break;
                                 }
 								
